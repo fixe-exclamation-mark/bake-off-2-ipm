@@ -271,29 +271,21 @@ function drawTarget(i) {
   // Get the location and size for target (i)
   let target = getTargetBounds(i);
 
-  // Check whether this target is the target the user should be trying to select
+  // Check whether this target is the target the user should be trying to select, otherwise red
   if (trials[current_trial] === i) {
-    // Highlights the target the user should be trying to select
-    // with a white border
-    fill(color(255, 0, 0));
+    // If the next particle is the same as the current, make it blue
+    fill(trials[current_trial + 1] === i ? color(0, 0, 255) : color(255, 0, 0));
     stroke(color(220, 220, 220));
     strokeWeight(2);
-
     // Remember you are allowed to access targets (i-1) and (i+1)
     // if this is the target the user should be trying to select
-    //
+  } else if (trials[current_trial + 1] === i) {
+    fill(color(100, 0, 0));
+    stroke(color(220, 220, 220));
+    strokeWeight(2);
   } else {
-    // Does not draw a border if this is not the target the user
-    // should be trying to select
     fill(color(155, 155, 155));
-    if (trials[current_trial + 1] === i) {
-      // FIXME: redo logic
-      fill(color(100, 0, 0));
-      stroke(color(220, 220, 220));
-      strokeWeight(2);
-    } else {
-      noStroke();
-    }
+    noStroke();
   }
 
   // Draws the target
