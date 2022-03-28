@@ -9,7 +9,7 @@
 const GROUP_NUMBER = 03; // Add your group number here as an integer (e.g., 2, 3)
 const BAKE_OFF_DAY = false; // Set to 'true' before sharing during the bake-off day
 
-// Target and grid properties (DO NOT CHANGE!)
+// Target and gri`d properties (DO NOT CHANGE!)
 let PPI, PPCM;
 let TARGET_SIZE;
 let TARGET_PADDING, MARGIN, LEFT_PADDING, TOP_PADDING;
@@ -29,6 +29,59 @@ let current_trial = 0; // the current trial number (indexes into trials array ab
 let attempt = 0; // users complete each test twice to account for practice (attemps 0 and 1)
 let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss)
 
+// Particles
+let particle_system;
+
+let Particle = function (position) {
+	this.velocity = createVector(random(-10, 10), random(-10, 10));
+	this.position = position.copy();
+	this.lifespan = 255;
+};
+
+Particle.prototype.run = function () {
+	this.update();
+	this.display();
+};
+
+Particle.prototype.display = function () {
+	stroke(200, this.lifespan);
+	strokeWeight(2);
+	fill(127, this.lifespan);
+	ellipse(
+		this.position.x,
+		this.position.y,
+		this.lifespan / 8,
+		this.lifespan / 8
+	);
+};
+
+Particle.prototype.update = function () {
+	this.position.add(this.velocity);
+	this.lifespan -= 16;
+};
+
+Particle.prototype.isDead = function () {
+	return this.lifespan < 0;
+};
+
+let ParticleSystem = function () {
+	this.particles = [];
+};
+
+ParticleSystem.prototype.addParticle = function (position) {
+	this.particles.push(new Particle(position));
+};
+
+ParticleSystem.prototype.run = function () {
+	for (let i = this.particles.length - 1; i >= 0; i--) {
+		let p = this.particles[i];
+		p.run();
+		if (p.isDead()) {
+			this.particles.splice(i, 1);
+		}
+	}
+};
+
 // Target class (position and width)
 class Target {
 	constructor(x, y, w) {
@@ -43,6 +96,7 @@ function setup() {
 	createCanvas(700, 500); // window size in px before we go into fullScreen()
 	frameRate(60); // frame rate (DO NOT CHANGE!)
 
+	particle_system = new ParticleSystem();
 	randomizeTrials(); // randomize the trial order at the start of execution
 
 	textFont("Arial", 18); // font size for the majority of the text
@@ -59,6 +113,9 @@ function draw() {
 		fill(color(255, 255, 255));
 		textAlign(LEFT);
 		text("Trial " + (current_trial + 1) + " of " + trials.length, 50, 20);
+
+		// Draw particles
+		particle_system.run();
 
 		// Draw all 18 targets
 		for (var i = 0; i < 18; i++) drawTarget(i);
@@ -82,8 +139,7 @@ function printAndSavePerformance() {
 	let test_time = (testEndTime - testStartTime) / 1000;
 	let time_per_target = nf(test_time / parseFloat(hits + misses), 0, 3);
 	let penalty = constrain(
-		(parseFloat(95) - parseFloat(hits * 100) / parseFloat(hits + misses)) *
-			0.2,
+		(parseFloat(95) - parseFloat(hits * 100) / parseFloat(hits + misses)) * 0.2,
 		0,
 		100
 	);
@@ -181,9 +237,11 @@ function mousePressed() {
 				height
 			);
 
-			if (dist(target.x, target.y, virtual_x, virtual_y) < target.w / 2)
+			if (dist(target.x, target.y, virtual_x, virtual_y) < target.w / 2) {
+				for (let i = 0; i < 32; i++)
+					particle_system.addParticle(createVector(virtual_x, virtual_y));
 				hits++;
-			else misses++;
+			} else misses++;
 
 			current_trial++; // Move on to the next trial/target
 		}
@@ -213,21 +271,29 @@ function drawTarget(i) {
 	// Get the location and size for target (i)
 	let target = getTargetBounds(i);
 
-	// Check whether this target is the target the user should be trying to select, otherwise red
+	// Check whether this target is the target the user should be trying to select
 	if (trials[current_trial] === i) {
-		// If the next particle is the same as the current, make it blue
-		fill(trials[current_trial + 1] === i ? color(0, 0, 255) : color(255, 0, 0));
+		// Highlights the target the user should be trying to select
+		// with a white border
+		fill(color(255, 0, 0));
 		stroke(color(220, 220, 220));
 		strokeWeight(2);
+
 		// Remember you are allowed to access targets (i-1) and (i+1)
 		// if this is the target the user should be trying to select
-	} else if (trials[current_trial + 1] === i) {
-		fill(color(100, 0, 0));
-		stroke(color(220, 220, 220));
-		strokeWeight(2);
+		//
 	} else {
+		// Does not draw a border if this is not the target the user
+		// should be trying to select
 		fill(color(155, 155, 155));
-		noStroke();
+		if (trials[current_trial + 1] === i) {
+			// FIXME: redo logic
+			fill(color(100, 0, 0));
+			stroke(color(220, 220, 220));
+			strokeWeight(2);
+		} else {
+			noStroke();
+		}
 	}
 
 	// Draws the target
@@ -279,12 +345,10 @@ function windowResized() {
 	MARGIN = 1.5 * PPCM; // sets the margin around the targets in cm
 
 	// Sets the margin of the grid of targets to the left of the canvas (DO NOT CHANGE!)
-	LEFT_PADDING =
-		width / 3 - TARGET_SIZE - 1.5 * TARGET_PADDING - 1.5 * MARGIN;
+	LEFT_PADDING = width / 3 - TARGET_SIZE - 1.5 * TARGET_PADDING - 1.5 * MARGIN;
 
 	// Sets the margin of the grid of targets to the top of the canvas (DO NOT CHANGE!)
-	TOP_PADDING =
-		height / 2 - TARGET_SIZE - 3.5 * TARGET_PADDING - 1.5 * MARGIN;
+	TOP_PADDING = height / 2 - TARGET_SIZE - 3.5 * TARGET_PADDING - 1.5 * MARGIN;
 
 	// Defines the user input area (DO NOT CHANGE!)
 	inputArea = {
