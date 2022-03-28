@@ -217,19 +217,28 @@ function drawTarget(i) {
 	if (trials[current_trial] === i) {
 		// Highlights the target the user should be trying to select
 		// with a white border
+		fill(color(255, 0, 0));
 		stroke(color(220, 220, 220));
 		strokeWeight(2);
 
 		// Remember you are allowed to access targets (i-1) and (i+1)
 		// if this is the target the user should be trying to select
 		//
+	} else {
+		// Does not draw a border if this is not the target the user
+		// should be trying to select
+		fill(color(155, 155, 155));
+		if (trials[current_trial + 1] === i) {
+			// FIXME: redo logic
+			fill(color(100, 0, 0));
+			stroke(color(220, 220, 220));
+			strokeWeight(2);
+		} else {
+			noStroke();
+		}
 	}
-	// Does not draw a border if this is not the target the user
-	// should be trying to select
-	else noStroke();
 
 	// Draws the target
-	fill(color(155, 155, 155));
 	circle(target.x, target.y, target.w);
 }
 
