@@ -29,6 +29,59 @@ let current_trial = 0; // the current trial number (indexes into trials array ab
 let attempt = 0; // users complete each test twice to account for practice (attemps 0 and 1)
 let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss)
 
+// Particles
+let particle_system;
+
+let Particle = function (position) {
+  this.velocity = createVector(random(-10, 10), random(-10, 10));
+  this.position = position.copy();
+  this.lifespan = 255;
+};
+
+Particle.prototype.run = function () {
+  this.update();
+  this.display();
+};
+
+Particle.prototype.display = function () {
+  stroke(200, this.lifespan);
+  strokeWeight(2);
+  fill(127, this.lifespan);
+  ellipse(
+    this.position.x,
+    this.position.y,
+    this.lifespan / 8,
+    this.lifespan / 8
+  );
+};
+
+Particle.prototype.update = function () {
+  this.position.add(this.velocity);
+  this.lifespan -= 16;
+};
+
+Particle.prototype.isDead = function () {
+  return this.lifespan < 0;
+};
+
+let ParticleSystem = function () {
+  this.particles = [];
+};
+
+ParticleSystem.prototype.addParticle = function (position) {
+  this.particles.push(new Particle(position));
+};
+
+ParticleSystem.prototype.run = function () {
+  for (let i = this.particles.length - 1; i >= 0; i--) {
+    let p = this.particles[i];
+    p.run();
+    if (p.isDead()) {
+      this.particles.splice(i, 1);
+    }
+  }
+};
+
 // Target class (position and width)
 class Target {
   constructor(x, y, w) {
@@ -43,6 +96,7 @@ function setup() {
   createCanvas(700, 500); // window size in px before we go into fullScreen()
   frameRate(60); // frame rate (DO NOT CHANGE!)
 
+  particle_system = new ParticleSystem();
   randomizeTrials(); // randomize the trial order at the start of execution
 
   textFont("Arial", 18); // font size for the majority of the text
@@ -59,6 +113,9 @@ function draw() {
     fill(color(255, 255, 255));
     textAlign(LEFT);
     text("Trial " + (current_trial + 1) + " of " + trials.length, 50, 20);
+
+    // Draw particles
+    particle_system.run();
 
     // Draw all 18 targets
     for (var i = 0; i < 18; i++) drawTarget(i);
@@ -180,8 +237,11 @@ function mousePressed() {
         height
       );
 
-      if (dist(target.x, target.y, virtual_x, virtual_y) < target.w / 2) hits++;
-      else misses++;
+      if (dist(target.x, target.y, virtual_x, virtual_y) < target.w / 2) {
+        for (let i = 0; i < 32; i++)
+          particle_system.addParticle(createVector(virtual_x, virtual_y));
+        hits++;
+      } else misses++;
 
       current_trial++; // Move on to the next trial/target
     }
