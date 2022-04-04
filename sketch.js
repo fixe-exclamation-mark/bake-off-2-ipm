@@ -31,13 +31,13 @@ let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there i
 
 // Features (initial value = probability of being active)
 const active_features = {
-  particles: 0.5,
-  current_target_border: 0.8,
-  border_on_hover: 0.8,
-  navigation_lines: 0.85,
+  particles: 0.7,
+  current_target_border: 0.7,
+  border_on_hover: 0.7,
+  navigation_lines: 0.7,
   animate_navigation_line: 0.7,
   next_target_dim_color: 0.5,
-  background_color_feedback: 0.8,
+  background_color_feedback: 0.7,
 };
 
 // Navigation line lerping
