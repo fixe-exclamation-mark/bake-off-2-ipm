@@ -34,6 +34,7 @@ const active_features = {
   particles: 0.5,
   current_target_border: 0.7,
   border_on_hover: 0.7,
+  navigation_lines: 0.75,
 };
 
 // Particles
@@ -130,6 +131,25 @@ function draw() {
 
     // Draw all 18 targets
     for (var i = 0; i < 18; i++) drawTarget(i);
+
+    // Draw arrow connecting to next target
+    if (active_features.navigation_lines) {
+      const prev = getTargetBounds(trials[current_trial - 1]);
+      const current = getTargetBounds(trials[current_trial]);
+      const next = getTargetBounds(trials[current_trial + 1]);
+      if (current && next && current != next) {
+        drawingContext.setLineDash([5, 5]);
+        stroke(color(100, 100, 100));
+        strokeWeight(2);
+        line(current.x, current.y, next.x, next.y);
+        drawingContext.setLineDash([1, 0]);
+      }
+      if (prev && current && prev != current) {
+        stroke(color(255, 255, 255));
+        strokeWeight(4);
+        line(prev.x, prev.y, current.x, current.y);
+      }
+    }
 
     // Draw the user input area
     drawInputArea();
