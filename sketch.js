@@ -36,6 +36,7 @@ const active_features = {
   border_on_hover: 0.7,
   navigation_lines: 0.75,
   animate_navigation_line: 0.5,
+  next_target_dim_color: 0.8,
 };
 
 // Navigation line lerping
@@ -350,9 +351,13 @@ function drawTarget(i) {
     // Remember you are allowed to access targets (i-1) and (i+1)
     // if this is the target the user should be trying to select
   } else if (trials[current_trial + 1] === i) {
-    fill(color(100, 0, 0));
+    fill(
+      active_features.next_target_dim_color
+        ? color(200, 200, 200)
+        : color(100, 0, 0)
+    );
   } else {
-    fill(color(155, 155, 155));
+    fill(color(120, 120, 120));
     // noStroke(); // probably won't work
     strokeWeight(0);
   }
