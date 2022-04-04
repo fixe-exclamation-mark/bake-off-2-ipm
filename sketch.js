@@ -35,7 +35,11 @@ const active_features = {
   current_target_border: 0.7,
   border_on_hover: 0.7,
   navigation_lines: 0.75,
+  animate_navigation_line: 0.5,
 };
+
+// Navigation line lerping
+let line_lerp = 0;
 
 // Particles
 let particle_system;
@@ -147,7 +151,15 @@ function draw() {
       if (prev && current && prev != current) {
         stroke(color(255, 255, 255));
         strokeWeight(4);
-        line(prev.x, prev.y, current.x, current.y);
+        if (line_lerp < 1 && !active_features.animate_navigation_line)
+          line_lerp = 1;
+        const to = p5.Vector.lerp(
+          createVector(prev.x, prev.y),
+          createVector(current.x, current.y),
+          line_lerp
+        );
+        line(prev.x, prev.y, to.x, to.y);
+        line_lerp = min(line_lerp * 1.5 + 0.1, 1);
       }
     }
 
@@ -296,6 +308,7 @@ function mousePressed() {
     } else misses++;
 
     current_trial++; // Move on to the next trial/target
+    line_lerp = 0;
   }
 
   // Check if the user has completed all 54 trials
