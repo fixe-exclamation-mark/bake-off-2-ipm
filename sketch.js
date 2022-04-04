@@ -7,7 +7,7 @@
 
 // Database (CHANGE THESE!)
 const GROUP_NUMBER = 03; // Add your group number here as an integer (e.g., 2, 3)
-const BAKE_OFF_DAY = false; // Set to 'true' before sharing during the bake-off day
+const BAKE_OFF_DAY = true; // Set to 'true' before sharing during the bake-off day
 
 // Target and grid properties (DO NOT CHANGE!)
 let PPI, PPCM;
@@ -28,6 +28,11 @@ let trials = []; // contains the order of targets that activate in the test
 let current_trial = 0; // the current trial number (indexes into trials array above)
 let attempt = 0; // users complete each test twice to account for practice (attemps 0 and 1)
 let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss)
+
+// Features (initial value = probability of being active)
+const active_features = {
+  particles: 0.5,
+};
 
 // Particles
 let particle_system;
@@ -64,8 +69,9 @@ Particle.prototype.isDead = function () {
   return this.lifespan < 0;
 };
 
-let ParticleSystem = function () {
+let ParticleSystem = function (active) {
   this.particles = [];
+  this.active = active;
 };
 
 ParticleSystem.prototype.addParticle = function (position) {
@@ -73,6 +79,7 @@ ParticleSystem.prototype.addParticle = function (position) {
 };
 
 ParticleSystem.prototype.run = function () {
+  if (!this.active) return;
   for (let i = this.particles.length - 1; i >= 0; i--) {
     let p = this.particles[i];
     p.run();
@@ -93,10 +100,12 @@ class Target {
 
 // Runs once at the start
 function setup() {
+  randomizeFeatures();
+
   createCanvas(700, 500); // window size in px before we go into fullScreen()
   frameRate(60); // frame rate (DO NOT CHANGE!)
 
-  particle_system = new ParticleSystem();
+  particle_system = new ParticleSystem(active_features.particles);
   randomizeTrials(); // randomize the trial order at the start of execution
 
   textFont("Arial", 18); // font size for the majority of the text
@@ -130,6 +139,14 @@ function draw() {
     fill(color(255, 255, 255));
     circle(x, y, 0.5 * PPCM);
   }
+}
+
+function randomizeFeatures() {
+  // Randomize the active features
+  for (const feat of Object.keys(active_features)) {
+    active_features[feat] = random() < active_features[feat];
+  }
+  console.log("Features:", active_features);
 }
 
 // Print and save results at the end of 54 trials
@@ -194,6 +211,7 @@ function printAndSavePerformance() {
     time_per_target: time_per_target,
     target_w_penalty: target_w_penalty,
     fitts_IDs: fitts_IDs,
+    active_features, // FIXME: remove this
   };
 
   // Send data to DB (DO NOT CHANGE!)
