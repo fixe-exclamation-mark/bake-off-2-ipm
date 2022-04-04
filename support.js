@@ -41,6 +41,12 @@ function drawUserIDScreen() {
     width / 2 - start_button.size().width / 2,
     height / 2 - start_button.size().height / 2
   );
+
+  // 4. Active features // FIXME: remove this
+  features_label = createDiv(
+    "Active Features: " + JSON.stringify(active_features, null, 2)
+  );
+  features_label.position(10, height);
 }
 
 // Verifies if the student ID is a number, and within an acceptable range
@@ -85,6 +91,7 @@ function startTest() {
     display_size_form.remove();
     display_size_label.remove();
     start_button.remove();
+    features_label.remove(); // FIXME: remove this
 
     // Goes fullscreen and starts test
     fullscreen(!fullscreen());
