@@ -322,23 +322,23 @@ function mousePressed() {
 
     current_trial++; // Move on to the next trial/target
     line_lerp = 0;
-  }
 
-  // Check if the user has completed all 54 trials
-  if (current_trial === trials.length) {
-    testEndTime = millis();
-    draw_targets = false; // Stop showing targets and the user performance results
-    printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
-    attempt++;
+    // Check if the user has completed all 54 trials
+    if (current_trial === trials.length) {
+      testEndTime = millis();
+      draw_targets = false; // Stop showing targets and the user performance results
+      printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
+      attempt++;
 
-    // If there's an attempt to go create a button to start this
-    if (attempt < 2) {
-      continue_button = createButton("START 2ND ATTEMPT");
-      continue_button.mouseReleased(continueTest);
-      continue_button.position(
-        width / 2 - continue_button.size().width / 2,
-        height / 2 - continue_button.size().height / 2
-      );
+      // If there's an attempt to go create a button to start this
+      if (attempt < 2) {
+        continue_button = createButton("START 2ND ATTEMPT");
+        continue_button.mouseReleased(continueTest);
+        continue_button.position(
+          width / 2 - continue_button.size().width / 2,
+          height / 2 - continue_button.size().height / 2
+        );
+      }
     }
   }
 }
