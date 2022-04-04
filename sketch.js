@@ -36,7 +36,7 @@ const active_features = {
   border_on_hover: 0.8,
   navigation_lines: 0.85,
   animate_navigation_line: 0.7,
-  next_target_dim_color: 0.8,
+  next_target_white: 0.8,
 };
 
 // Navigation line lerping
@@ -352,8 +352,8 @@ function drawTarget(i) {
     // if this is the target the user should be trying to select
   } else if (trials[current_trial + 1] === i) {
     fill(
-      active_features.next_target_dim_color
-        ? color(200, 200, 200)
+      active_features.next_target_white
+        ? color(255, 255, 255)
         : color(100, 0, 0)
     );
   } else {
