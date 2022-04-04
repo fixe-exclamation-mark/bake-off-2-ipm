@@ -305,39 +305,41 @@ function mousePressed() {
   if (draw_targets) {
     // Get the location and size of the target the user should be trying to select
     const target = getTargetBounds(trials[current_trial]);
+    const virtual_coords = getVirtualCoordinates(target);
+    if (virtual_coords) {
+      // Check to see if the virtual cursor is inside the target bounds,
+      // increasing either the 'hits' or 'misses' counters
+      if (isTargeting(target)) {
+        for (let i = 0; i < 32; i++)
+          particle_system.addParticle(virtual_coords);
+        hits++;
+        if (active_features.background_color_feedback)
+          background_color = color(16, 32, 24); // green
+      } else {
+        misses++;
+        if (active_features.background_color_feedback)
+          background_color = color(60, 0, 0); // red
+      }
 
-    // Check to see if the virtual cursor is inside the target bounds,
-    // increasing either the 'hits' or 'misses' counters
-    if (isTargeting(target)) {
-      for (let i = 0; i < 32; i++)
-        particle_system.addParticle(getVirtualCoordinates(target));
-      hits++;
-      if (active_features.background_color_feedback)
-        background_color = color(16, 32, 24); // green
-    } else {
-      misses++;
-      if (active_features.background_color_feedback)
-        background_color = color(60, 0, 0); // red
-    }
+      current_trial++; // Move on to the next trial/target
+      line_lerp = 0;
 
-    current_trial++; // Move on to the next trial/target
-    line_lerp = 0;
+      // Check if the user has completed all 54 trials
+      if (current_trial === trials.length) {
+        testEndTime = millis();
+        draw_targets = false; // Stop showing targets and the user performance results
+        printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
+        attempt++;
 
-    // Check if the user has completed all 54 trials
-    if (current_trial === trials.length) {
-      testEndTime = millis();
-      draw_targets = false; // Stop showing targets and the user performance results
-      printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
-      attempt++;
-
-      // If there's an attempt to go create a button to start this
-      if (attempt < 2) {
-        continue_button = createButton("START 2ND ATTEMPT");
-        continue_button.mouseReleased(continueTest);
-        continue_button.position(
-          width / 2 - continue_button.size().width / 2,
-          height / 2 - continue_button.size().height / 2
-        );
+        // If there's an attempt to go create a button to start this
+        if (attempt < 2) {
+          continue_button = createButton("START 2ND ATTEMPT");
+          continue_button.mouseReleased(continueTest);
+          continue_button.position(
+            width / 2 - continue_button.size().width / 2,
+            height / 2 - continue_button.size().height / 2
+          );
+        }
       }
     }
   }
