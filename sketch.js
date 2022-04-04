@@ -33,6 +33,7 @@ let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there i
 const active_features = {
   particles: 0.5,
   current_target_border: 0.7,
+  border_on_hover: 0.7,
 };
 
 // Particles
@@ -229,58 +230,69 @@ function printAndSavePerformance() {
   }
 }
 
+function getVirtualCoordinates(target) {
+  if (insideInputArea(mouseX, mouseY)) {
+    const virtual_x = map(
+      mouseX,
+      inputArea.x,
+      inputArea.x + inputArea.w,
+      0,
+      width
+    );
+    const virtual_y = map(
+      mouseY,
+      inputArea.y,
+      inputArea.y + inputArea.h,
+      0,
+      height
+    );
+    return createVector(virtual_x, virtual_y);
+  }
+  return null;
+}
+
+function isTargeting(target) {
+  const virtual_coords = getVirtualCoordinates(target);
+  return (
+    virtual_coords !== null &&
+    dist(target.x, target.y, virtual_coords.x, virtual_coords.y) < target.w / 2
+  );
+}
+
 // Mouse button was pressed - lets test to see if hit was in the correct target
 function mousePressed() {
   // Only look for mouse releases during the actual test
   // (i.e., during target selections)
   if (draw_targets) {
     // Get the location and size of the target the user should be trying to select
-    let target = getTargetBounds(trials[current_trial]);
+    const target = getTargetBounds(trials[current_trial]);
 
     // Check to see if the virtual cursor is inside the target bounds,
     // increasing either the 'hits' or 'misses' counters
+    if (isTargeting(target)) {
+      for (let i = 0; i < 32; i++)
+        particle_system.addParticle(getVirtualCoordinates(target));
+      hits++;
+    } else misses++;
 
-    if (insideInputArea(mouseX, mouseY)) {
-      let virtual_x = map(
-        mouseX,
-        inputArea.x,
-        inputArea.x + inputArea.w,
-        0,
-        width
+    current_trial++; // Move on to the next trial/target
+  }
+
+  // Check if the user has completed all 54 trials
+  if (current_trial === trials.length) {
+    testEndTime = millis();
+    draw_targets = false; // Stop showing targets and the user performance results
+    printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
+    attempt++;
+
+    // If there's an attempt to go create a button to start this
+    if (attempt < 2) {
+      continue_button = createButton("START 2ND ATTEMPT");
+      continue_button.mouseReleased(continueTest);
+      continue_button.position(
+        width / 2 - continue_button.size().width / 2,
+        height / 2 - continue_button.size().height / 2
       );
-      let virtual_y = map(
-        mouseY,
-        inputArea.y,
-        inputArea.y + inputArea.h,
-        0,
-        height
-      );
-
-      if (dist(target.x, target.y, virtual_x, virtual_y) < target.w / 2) {
-        for (let i = 0; i < 32; i++)
-          particle_system.addParticle(createVector(virtual_x, virtual_y));
-        hits++;
-      } else misses++;
-
-      current_trial++; // Move on to the next trial/target
-    }
-
-    // Check if the user has completed all 54 trials
-    if (current_trial === trials.length) {
-      testEndTime = millis();
-      draw_targets = false; // Stop showing targets and the user performance results
-      printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
-      attempt++;
-
-      // If there's an attempt to go create a button to start this
-      if (attempt < 2) {
-        continue_button = createButton("START 2ND ATTEMPT");
-        continue_button.mouseReleased(continueTest);
-        continue_button.position(
-          width / 2 - continue_button.size().width / 2,
-          height / 2 - continue_button.size().height / 2
-        );
-      }
     }
   }
 }
@@ -289,6 +301,9 @@ function mousePressed() {
 function drawTarget(i) {
   // Get the location and size for target (i)
   let target = getTargetBounds(i);
+
+  stroke(color(220, 220, 220));
+  strokeWeight(2);
 
   // Check whether this target is the target the user should be trying to select, otherwise red
   if (trials[current_trial] === i) {
@@ -299,16 +314,18 @@ function drawTarget(i) {
         ? color(255, 255, 0)
         : color(220, 220, 220)
     );
-    strokeWeight(2);
     // Remember you are allowed to access targets (i-1) and (i+1)
     // if this is the target the user should be trying to select
   } else if (trials[current_trial + 1] === i) {
     fill(color(100, 0, 0));
-    stroke(color(220, 220, 220));
-    strokeWeight(2);
   } else {
     fill(color(155, 155, 155));
-    noStroke();
+    // noStroke(); // probably won't work
+    strokeWeight(0);
+  }
+
+  if (active_features.border_on_hover && isTargeting(target)) {
+    strokeWeight(4);
   }
 
   // Draws the target
