@@ -36,11 +36,15 @@ const active_features = {
   border_on_hover: 0.8,
   navigation_lines: 0.85,
   animate_navigation_line: 0.7,
-  next_target_white: 0.8,
+  next_target_dim_color: 0.5,
+  background_color_feedback: 0.8,
 };
 
 // Navigation line lerping
 let line_lerp = 0;
+
+// Background color
+let background_color;
 
 // Particles
 let particle_system;
@@ -118,13 +122,15 @@ function setup() {
 
   textFont("Arial", 18); // font size for the majority of the text
   drawUserIDScreen(); // draws the user start-up screen (student ID and display size)
+
+  background_color = color(0, 0, 0);
 }
 
 // Runs every frame and redraws the screen
 function draw() {
   if (draw_targets) {
     // The user is interacting with the 6x3 target grid
-    background(color(0, 0, 0)); // sets background to black
+    background(background_color); // sets background to black
 
     // Print trial count at the top left-corner of the canvas
     fill(color(255, 255, 255));
@@ -306,7 +312,13 @@ function mousePressed() {
       for (let i = 0; i < 32; i++)
         particle_system.addParticle(getVirtualCoordinates(target));
       hits++;
-    } else misses++;
+      if (active_features.background_color_feedback)
+        background_color = color(16, 32, 24); // green
+    } else {
+      misses++;
+      if (active_features.background_color_feedback)
+        background_color = color(60, 0, 0); // red
+    }
 
     current_trial++; // Move on to the next trial/target
     line_lerp = 0;
@@ -352,12 +364,12 @@ function drawTarget(i) {
     // if this is the target the user should be trying to select
   } else if (trials[current_trial + 1] === i) {
     fill(
-      active_features.next_target_white
-        ? color(255, 255, 255)
-        : color(100, 0, 0)
+      active_features.next_target_dim_color
+        ? color(220, 220, 220)
+        : color(255, 255, 255)
     );
   } else {
-    fill(color(120, 120, 120));
+    fill(color(145, 145, 145));
     // noStroke(); // probably won't work
     strokeWeight(0);
   }
@@ -397,6 +409,8 @@ function continueTest() {
   continue_button.remove();
 
   // Shows the targets again
+  background_color = color(0, 0, 0);
+  line_lerp = 0;
   draw_targets = true;
   testStartTime = millis();
 }
@@ -434,7 +448,7 @@ function windowResized() {
 
 // Responsible for drawing the input area
 function drawInputArea() {
-  noFill();
+  fill(color(0, 0, 0));
   stroke(color(220, 220, 220));
   strokeWeight(2);
 
