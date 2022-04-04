@@ -32,6 +32,7 @@ let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there i
 // Features (initial value = probability of being active)
 const active_features = {
   particles: 0.5,
+  current_target_border: 0.7,
 };
 
 // Particles
@@ -293,7 +294,11 @@ function drawTarget(i) {
   if (trials[current_trial] === i) {
     // If the next particle is the same as the current, make it blue
     fill(trials[current_trial + 1] === i ? color(0, 0, 255) : color(255, 0, 0));
-    stroke(color(220, 220, 220));
+    stroke(
+      active_features.current_target_border
+        ? color(255, 255, 0)
+        : color(220, 220, 220)
+    );
     strokeWeight(2);
     // Remember you are allowed to access targets (i-1) and (i+1)
     // if this is the target the user should be trying to select
