@@ -27,7 +27,8 @@ let draw_targets = false; // used to control what to show in draw()
 let trials = []; // contains the order of targets that activate in the test
 let current_trial = 0; // the current trial number (indexes into trials array above)
 let attempt = 0; // users complete each test twice to account for practice (attemps 0 and 1)
-let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss)
+let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss, -2 for first trial)
+let last_click_virtual_coords; // used to calculate Fitts ID
 
 // Features (initial value = probability of being active)
 const active_features = {
@@ -221,6 +222,7 @@ function printAndSavePerformance() {
 
   background(color(0, 0, 0)); // clears screen
   fill(color(255, 255, 255)); // set text fill color to white
+  noStroke(); // no stroke around text
   text(timestamp, 10, 20); // display time on screen (top-left corner)
 
   textAlign(CENTER);
@@ -237,7 +239,18 @@ function printAndSavePerformance() {
   );
 
   // Print Fitts IDS (one per target, -1 if failed selection, optional)
-  //
+  text("Fitts Index of Performance", width / 2, 260);
+  for (let i = 0; i < fitts_IDs.length; i++) {
+    let fid = fitts_IDs[i];
+    if (fid === -1) fid = "MISSED";
+    else if (fid === -2) fid = "---"; // first trial
+    else fid = fid.toFixed(3);
+    text(
+      "Target " + (i + 1) + ": " + fid,
+      ((i < fitts_IDs.length / 2 ? 1 : 2) * width) / 3,
+      280 + (i % (fitts_IDs.length / 2)) * 20
+    );
+  }
 
   // Saves results (DO NOT CHANGE!)
   let attempt_data = {
@@ -313,14 +326,27 @@ function mousePressed() {
         for (let i = 0; i < 32; i++)
           particle_system.addParticle(virtual_coords);
         hits++;
+        if (last_click_virtual_coords) {
+          const distance = dist(
+            last_click_virtual_coords.x,
+            last_click_virtual_coords.y,
+            target.x,
+            target.y
+          );
+          fitts_IDs.push(Math.log2(distance / target.w + 1));
+        } else {
+          fitts_IDs.push(-2);
+        }
         if (active_features.background_color_feedback)
           background_color = color(16, 32, 24); // green
       } else {
         misses++;
+        fitts_IDs.push(-1);
         if (active_features.background_color_feedback)
           background_color = color(60, 0, 0); // red
       }
 
+      last_click_virtual_coords = virtual_coords;
       current_trial++; // Move on to the next trial/target
       line_lerp = 0;
 
@@ -407,6 +433,7 @@ function continueTest() {
   hits = 0;
   misses = 0;
   fitts_IDs = [];
+  last_click_virtual_coords = undefined;
 
   continue_button.remove();
 
