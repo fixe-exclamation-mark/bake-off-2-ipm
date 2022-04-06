@@ -27,20 +27,25 @@ let draw_targets = false; // used to control what to show in draw()
 let trials = []; // contains the order of targets that activate in the test
 let current_trial = 0; // the current trial number (indexes into trials array above)
 let attempt = 0; // users complete each test twice to account for practice (attemps 0 and 1)
-let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss)
+let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss, -2 for first trial)
+let last_click_virtual_coords; // used to calculate Fitts ID
 
 // Features (initial value = probability of being active)
 const active_features = {
-  particles: 0.5,
-  current_target_border: 0.8,
-  border_on_hover: 0.8,
-  navigation_lines: 0.85,
+  particles: 0.7,
+  current_target_border: 0.7,
+  border_on_hover: 0.7,
+  navigation_lines: 0.7,
   animate_navigation_line: 0.7,
-  next_target_dim_color: 0.8,
+  next_target_dim_color: 0.5,
+  background_color_feedback: 0.7,
 };
 
 // Navigation line lerping
 let line_lerp = 0;
+
+// Background color
+let background_color;
 
 // Particles
 let particle_system;
@@ -118,13 +123,15 @@ function setup() {
 
   textFont("Arial", 18); // font size for the majority of the text
   drawUserIDScreen(); // draws the user start-up screen (student ID and display size)
+
+  background_color = color(0, 0, 0);
 }
 
 // Runs every frame and redraws the screen
 function draw() {
   if (draw_targets) {
     // The user is interacting with the 6x3 target grid
-    background(color(0, 0, 0)); // sets background to black
+    background(background_color); // sets background to black
 
     // Print trial count at the top left-corner of the canvas
     fill(color(255, 255, 255));
@@ -215,6 +222,7 @@ function printAndSavePerformance() {
 
   background(color(0, 0, 0)); // clears screen
   fill(color(255, 255, 255)); // set text fill color to white
+  noStroke(); // no stroke around text
   text(timestamp, 10, 20); // display time on screen (top-left corner)
 
   textAlign(CENTER);
@@ -231,7 +239,18 @@ function printAndSavePerformance() {
   );
 
   // Print Fitts IDS (one per target, -1 if failed selection, optional)
-  //
+  text("Fitts Index of Performance", width / 2, 260);
+  for (let i = 0; i < fitts_IDs.length; i++) {
+    let fid = fitts_IDs[i];
+    if (fid === -1) fid = "MISSED";
+    else if (fid === -2) fid = "---"; // first trial
+    else fid = fid.toFixed(3);
+    text(
+      "Target " + (i + 1) + ": " + fid,
+      ((i < fitts_IDs.length / 2 ? 1 : 2) * width) / 3,
+      280 + (i % (fitts_IDs.length / 2)) * 20
+    );
+  }
 
   // Saves results (DO NOT CHANGE!)
   let attempt_data = {
@@ -299,34 +318,55 @@ function mousePressed() {
   if (draw_targets) {
     // Get the location and size of the target the user should be trying to select
     const target = getTargetBounds(trials[current_trial]);
+    const virtual_coords = getVirtualCoordinates(target);
+    if (virtual_coords) {
+      // Check to see if the virtual cursor is inside the target bounds,
+      // increasing either the 'hits' or 'misses' counters
+      if (isTargeting(target)) {
+        for (let i = 0; i < 32; i++)
+          particle_system.addParticle(virtual_coords);
+        hits++;
+        if (last_click_virtual_coords) {
+          const distance = dist(
+            last_click_virtual_coords.x,
+            last_click_virtual_coords.y,
+            target.x,
+            target.y
+          );
+          fitts_IDs.push(Math.log2(distance / target.w + 1));
+        } else {
+          fitts_IDs.push(-2);
+        }
+        if (active_features.background_color_feedback)
+          background_color = color(16, 32, 24); // green
+      } else {
+        misses++;
+        fitts_IDs.push(-1);
+        if (active_features.background_color_feedback)
+          background_color = color(60, 0, 0); // red
+      }
 
-    // Check to see if the virtual cursor is inside the target bounds,
-    // increasing either the 'hits' or 'misses' counters
-    if (isTargeting(target)) {
-      for (let i = 0; i < 32; i++)
-        particle_system.addParticle(getVirtualCoordinates(target));
-      hits++;
-    } else misses++;
+      last_click_virtual_coords = virtual_coords;
+      current_trial++; // Move on to the next trial/target
+      line_lerp = 0;
 
-    current_trial++; // Move on to the next trial/target
-    line_lerp = 0;
-  }
+      // Check if the user has completed all 54 trials
+      if (current_trial === trials.length) {
+        testEndTime = millis();
+        draw_targets = false; // Stop showing targets and the user performance results
+        printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
+        attempt++;
 
-  // Check if the user has completed all 54 trials
-  if (current_trial === trials.length) {
-    testEndTime = millis();
-    draw_targets = false; // Stop showing targets and the user performance results
-    printAndSavePerformance(); // Print the user's results on-screen and send these to the DB
-    attempt++;
-
-    // If there's an attempt to go create a button to start this
-    if (attempt < 2) {
-      continue_button = createButton("START 2ND ATTEMPT");
-      continue_button.mouseReleased(continueTest);
-      continue_button.position(
-        width / 2 - continue_button.size().width / 2,
-        height / 2 - continue_button.size().height / 2
-      );
+        // If there's an attempt to go create a button to start this
+        if (attempt < 2) {
+          continue_button = createButton("START 2ND ATTEMPT");
+          continue_button.mouseReleased(continueTest);
+          continue_button.position(
+            width / 2 - continue_button.size().width / 2,
+            height / 2 - continue_button.size().height / 2
+          );
+        }
+      }
     }
   }
 }
@@ -353,11 +393,11 @@ function drawTarget(i) {
   } else if (trials[current_trial + 1] === i) {
     fill(
       active_features.next_target_dim_color
-        ? color(200, 200, 200)
-        : color(100, 0, 0)
+        ? color(220, 220, 220)
+        : color(255, 255, 255)
     );
   } else {
-    fill(color(120, 120, 120));
+    fill(color(145, 145, 145));
     // noStroke(); // probably won't work
     strokeWeight(0);
   }
@@ -393,10 +433,13 @@ function continueTest() {
   hits = 0;
   misses = 0;
   fitts_IDs = [];
+  last_click_virtual_coords = undefined;
 
   continue_button.remove();
 
   // Shows the targets again
+  background_color = color(0, 0, 0);
+  line_lerp = 0;
   draw_targets = true;
   testStartTime = millis();
 }
@@ -434,7 +477,7 @@ function windowResized() {
 
 // Responsible for drawing the input area
 function drawInputArea() {
-  noFill();
+  fill(color(0, 0, 0));
   stroke(color(220, 220, 220));
   strokeWeight(2);
 
