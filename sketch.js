@@ -47,6 +47,10 @@ let line_lerp = 0;
 // Background color
 let background_color;
 
+// Sound effects
+let hit_sound;
+let miss_sound;
+
 // Particles
 let particle_system;
 
@@ -125,6 +129,9 @@ function setup() {
   drawUserIDScreen(); // draws the user start-up screen (student ID and display size)
 
   background_color = color(0, 0, 0);
+
+  hit_sound = loadSound("assets/hit.wav");
+  miss_sound = loadSound("assets/miss.wav");
 }
 
 // Runs every frame and redraws the screen
@@ -315,6 +322,10 @@ function isTargeting(target) {
 function mousePressed() {
   // Only look for mouse releases during the actual test
   // (i.e., during target selections)
+
+  // as the first thing, stop any sound currently playing (so there aren't any overlapping sounds)
+  hit_sound.stop();
+  miss_sound.stop();
   if (draw_targets) {
     // Get the location and size of the target the user should be trying to select
     const target = getTargetBounds(trials[current_trial]);
@@ -325,6 +336,8 @@ function mousePressed() {
       if (isTargeting(target)) {
         for (let i = 0; i < 32; i++)
           particle_system.addParticle(virtual_coords);
+        // load hit sound (but first, stop any previous sound playing)
+        hit_sound.play();
         hits++;
         if (last_click_virtual_coords) {
           const distance = dist(
@@ -340,6 +353,7 @@ function mousePressed() {
         if (active_features.background_color_feedback)
           background_color = color(16, 32, 24); // green
       } else {
+        miss_sound.play();
         misses++;
         fitts_IDs.push(-1);
         if (active_features.background_color_feedback)
