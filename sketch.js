@@ -39,6 +39,7 @@ const active_features = {
   animate_navigation_line: 0.7,
   next_target_dim_color: 0.5,
   background_color_feedback: 0.7,
+  sound_feedback: 0.7,
 };
 
 // Navigation line lerping
@@ -337,7 +338,9 @@ function mousePressed() {
         for (let i = 0; i < 32; i++)
           particle_system.addParticle(virtual_coords);
         // load hit sound (but first, stop any previous sound playing)
-        hit_sound.play();
+        if (active_features.sound_feedback) {
+          hit_sound.play();
+        }
         hits++;
         if (last_click_virtual_coords) {
           const distance = dist(
@@ -353,7 +356,9 @@ function mousePressed() {
         if (active_features.background_color_feedback)
           background_color = color(16, 32, 24); // green
       } else {
-        miss_sound.play();
+        if (active_features.sound_feedback) {
+          miss_sound.play();
+        }
         misses++;
         fitts_IDs.push(-1);
         if (active_features.background_color_feedback)
