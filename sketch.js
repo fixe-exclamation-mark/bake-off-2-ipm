@@ -367,6 +367,10 @@ function mousePressed() {
           );
         }
       }
+      // Check if this was the first selection in an attempt
+      else if (current_trial === 1) {
+        testStartTime = millis();
+      }
     }
   }
 }
