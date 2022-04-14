@@ -41,7 +41,6 @@ const active_features = {
   background_color_feedback: 0.7,
   sound_feedback: 0.7,
   snapping: 0.85,
-  sound_feedback: 0.5,
   tutorial_screen: 0.75,
 };
 
@@ -640,25 +639,37 @@ function drawTutorialArea() {
   circle(inputArea.x + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
   fill(color(255, 255, 255));
   noStroke();
-  text('CURRENT', inputArea.x, titleHeight);
-  
+  text("CURRENT", inputArea.x, titleHeight);
+
   fill(color(255, 255, 255));
   noStroke();
-  circle(inputArea.x + inputArea.w / 4 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
-  text('NEXT', inputArea.x + inputArea.w / 4, titleHeight);
-  
+  circle(
+    inputArea.x + inputArea.w / 4 + TARGET_SIZE * 0.5,
+    targetHeight,
+    TARGET_SIZE * 0.75
+  );
+  text("NEXT", inputArea.x + inputArea.w / 4, titleHeight);
+
   fill(color(0, 0, 255));
   stroke(color(255, 255, 255));
   strokeWeight(4);
-  circle(inputArea.x + inputArea.w / 2 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  circle(
+    inputArea.x + inputArea.w / 2 + TARGET_SIZE * 0.5,
+    targetHeight,
+    TARGET_SIZE * 0.75
+  );
   fill(color(255, 255, 255));
   noStroke();
-  text('TWICE!', inputArea.x + inputArea.w / 2, titleHeight);
+  text("TWICE!", inputArea.x + inputArea.w / 2, titleHeight);
 
   fill(color(145, 145, 145));
   noStroke();
-  circle(inputArea.x + 3 * inputArea.w / 4 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  circle(
+    inputArea.x + (3 * inputArea.w) / 4 + TARGET_SIZE * 0.5,
+    targetHeight,
+    TARGET_SIZE * 0.75
+  );
   fill(color(255, 255, 255));
   noStroke();
-  text('IRRELEVANT', inputArea.x + 3 * inputArea.w / 4, titleHeight);
+  text("IRRELEVANT", inputArea.x + (3 * inputArea.w) / 4, titleHeight);
 }
