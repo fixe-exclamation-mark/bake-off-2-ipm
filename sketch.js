@@ -41,6 +41,8 @@ const active_features = {
   background_color_feedback: 0.7,
   sound_feedback: 0.7,
   snapping: 0.85,
+  sound_feedback: 0.5,
+  tutorial_screen: 0.75,
 };
 
 // Navigation line lerping
@@ -199,6 +201,11 @@ function draw() {
         line(prev.x, prev.y, to.x, to.y);
         line_lerp = min(line_lerp * 1.5 + 0.1, 1);
       }
+    }
+
+    // Draw a tutorial area - showing the appearance of the current target, next target and irrelevant targets
+    if (active_features.tutorial_screen) {
+      drawTutorialArea();
     }
 
     // Draw the user input area
@@ -618,4 +625,40 @@ function drawInputArea() {
     strokeWeight(2);
     rect(inputArea.x, inputArea.y, inputArea.w, inputArea.h);
   }
+}
+
+// Responsible for drawing the tutorial area
+function drawTutorialArea() {
+  // Draw instructions above input area
+  const targetHeight = inputArea.y - TARGET_SIZE * 1.5;
+  const titleHeight = inputArea.y - TARGET_SIZE * 2.25;
+
+  fill(color(255, 0, 0));
+  if (active_features.current_target_border) {
+    stroke(color(255, 255, 0));
+  }
+  circle(inputArea.x + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  fill(color(255, 255, 255));
+  noStroke();
+  text('CURRENT', inputArea.x, titleHeight);
+  
+  fill(color(255, 255, 255));
+  noStroke();
+  circle(inputArea.x + inputArea.w / 4 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  text('NEXT', inputArea.x + inputArea.w / 4, titleHeight);
+  
+  fill(color(0, 0, 255));
+  stroke(color(255, 255, 255));
+  strokeWeight(4);
+  circle(inputArea.x + inputArea.w / 2 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  fill(color(255, 255, 255));
+  noStroke();
+  text('TWICE!', inputArea.x + inputArea.w / 2, titleHeight);
+
+  fill(color(145, 145, 145));
+  noStroke();
+  circle(inputArea.x + 3 * inputArea.w / 4 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  fill(color(255, 255, 255));
+  noStroke();
+  text('IRRELEVANT', inputArea.x + 3 * inputArea.w / 4, titleHeight);
 }
