@@ -40,6 +40,7 @@ const active_features = {
   next_target_dim_color: 0.5,
   background_color_feedback: 0.7,
   sound_feedback: 0.7,
+  snapping: 0.75,
 };
 
 // Navigation line lerping
@@ -207,10 +208,16 @@ function draw() {
     let virtual_coords = getVirtualCoordinates();
     let snap = snapCursor(virtual_coords);
 
-    if (virtual_coords != null) {
+    if (virtual_coords == null) {
+      return;
+    }
+
+    fill(color(255, 255, 255));
+    if (active_features.snapping) {
       line(virtual_coords.x, virtual_coords.y, snap.x, snap.y);
-      fill(color(255, 255, 255));
       circle(snap.x, snap.y, 0.5 * PPCM);
+    } else {
+      circle(virtual_coords.x, virtual_coords.y, 0.5 * PPCM);
     }
   }
 }
@@ -355,7 +362,9 @@ function getRealCoordinates(target) {
 }
 
 function isTargeting(target) {
-  const virtual_coords = snapCursor(getVirtualCoordinates());
+  const virtual_coords = active_features.snapping
+    ? snapCursor(getVirtualCoordinates())
+    : getVirtualCoordinates();
   return (
     virtual_coords !== null &&
     dist(target.x, target.y, virtual_coords.x, virtual_coords.y) < target.w / 2
@@ -543,63 +552,70 @@ function windowResized() {
 
 // Responsible for drawing the input area
 function drawInputArea() {
-  for (let i = 0; i <= 18; i++) {
-    trial = i;
+  if (active_features.snapping) {
+    for (let i = 0; i <= 18; i++) {
+      trial = i;
 
-    // Hack to avoid covering colored stroke
-    if (i == 18) {
-      trial = trials[current_trial];
+      // Hack to avoid covering colored stroke
+      if (i == 18) {
+        trial = trials[current_trial];
+      }
+
+      strokeWeight(
+        active_features.border_on_hover && isTargeting(getTargetBounds(trial))
+          ? 4
+          : 2
+      );
+      stroke(color(220, 220, 220));
+      if (trials[current_trial] === trial) {
+        stroke(
+          active_features.current_target_border
+            ? color(255, 255, 0)
+            : color(220, 220, 220)
+        );
+        fill(
+          trials[current_trial + 1] === trial
+            ? color(0, 0, 255)
+            : color(255, 0, 0)
+        );
+      } else if (trials[current_trial + 1] === trial) {
+        fill(
+          active_features.next_target_dim_color
+            ? color(220, 220, 220)
+            : color(255, 255, 255)
+        );
+      } else {
+        fill(color(0, 0, 0));
+      }
+
+      const target = getRealCoordinates(getTargetBounds(trial));
+
+      const up = getRealCoordinates(getTargetBounds(trial - 3)).y;
+      const down = getRealCoordinates(getTargetBounds(trial + 3)).y;
+      const left = getRealCoordinates(getTargetBounds(trial - 1)).x;
+      const right = getRealCoordinates(getTargetBounds(trial + 1)).x;
+
+      let topLeft = createVector((target.x + left) / 2, (target.y + up) / 2);
+      let bottomRight = createVector(
+        (target.x + right) / 2,
+        (target.y + down) / 2
+      );
+
+      if (trial % 3 == 0) topLeft.x = inputArea.x;
+      if (trial % 3 == 2) bottomRight.x = inputArea.x + inputArea.w;
+      if (Math.floor(trial / 3) == 0) topLeft.y = inputArea.y;
+      if (Math.floor(trial / 3) == 5) bottomRight.y = inputArea.y + inputArea.h;
+      rect(
+        topLeft.x,
+        topLeft.y,
+        bottomRight.x - topLeft.x,
+        bottomRight.y - topLeft.y
+      );
     }
-
-    strokeWeight(
-      active_features.border_on_hover && isTargeting(getTargetBounds(trial))
-        ? 4
-        : 2
-    );
+  } else {
+    fill(color(0, 0, 0));
     stroke(color(220, 220, 220));
-    if (trials[current_trial] === trial) {
-      stroke(
-        active_features.current_target_border
-          ? color(255, 255, 0)
-          : color(220, 220, 220)
-      );
-      fill(
-        trials[current_trial + 1] === trial
-          ? color(0, 0, 255)
-          : color(255, 0, 0)
-      );
-    } else if (trials[current_trial + 1] === trial) {
-      fill(
-        active_features.next_target_dim_color
-          ? color(220, 220, 220)
-          : color(255, 255, 255)
-      );
-    } else {
-      fill(color(0, 0, 0));
-    }
-
-    const target = getRealCoordinates(getTargetBounds(trial));
-
-    const up = getRealCoordinates(getTargetBounds(trial - 3)).y;
-    const down = getRealCoordinates(getTargetBounds(trial + 3)).y;
-    const left = getRealCoordinates(getTargetBounds(trial - 1)).x;
-    const right = getRealCoordinates(getTargetBounds(trial + 1)).x;
-
-    let topLeft = createVector((target.x + left) / 2, (target.y + up) / 2);
-    let bottomRight = createVector(
-      (target.x + right) / 2,
-      (target.y + down) / 2
-    );
-
-    if (trial % 3 == 0) topLeft.x = inputArea.x;
-    if (trial % 3 == 2) bottomRight.x = inputArea.x + inputArea.w;
-    if (Math.floor(trial / 3) == 0) topLeft.y = inputArea.y;
-    if (Math.floor(trial / 3) == 5) bottomRight.y = inputArea.y + inputArea.h;
-    rect(
-      topLeft.x,
-      topLeft.y,
-      bottomRight.x - topLeft.x,
-      bottomRight.y - topLeft.y
-    );
+    strokeWeight(2);
+    rect(inputArea.x, inputArea.y, inputArea.w, inputArea.h);
   }
 }
