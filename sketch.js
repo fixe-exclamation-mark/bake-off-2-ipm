@@ -40,7 +40,7 @@ const active_features = {
   next_target_dim_color: 0.5,
   background_color_feedback: 0.7,
   sound_feedback: 0.7,
-  snapping: 0.75,
+  snapping: 0.85,
 };
 
 // Navigation line lerping
