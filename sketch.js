@@ -39,7 +39,8 @@ const active_features = {
   animate_navigation_line: 0.7,
   next_target_dim_color: 0.5,
   background_color_feedback: 0.7,
-  sound_feedback: 0.5,
+  sound_feedback: 0.7,
+  snapping: 0.85,
   tutorial_screen: 0.75,
 };
 
@@ -136,6 +137,26 @@ function setup() {
   miss_sound = loadSound("assets/miss.wav");
 }
 
+function snapCursor(virtual_coords) {
+  if (virtual_coords == null) return null;
+  let closest;
+  let minDist;
+  for (let i = 0; i < 18; i++) {
+    const target = getTargetBounds(i);
+    const distance = dist(
+      virtual_coords.x,
+      virtual_coords.y,
+      target.x,
+      target.y
+    );
+    if (!minDist || distance < minDist) {
+      closest = target;
+      minDist = distance;
+    }
+  }
+  return closest;
+}
+
 // Runs every frame and redraws the screen
 function draw() {
   if (draw_targets) {
@@ -144,6 +165,7 @@ function draw() {
 
     // Print trial count at the top left-corner of the canvas
     fill(color(255, 255, 255));
+    strokeWeight(0);
     textAlign(LEFT);
     text("Trial " + (current_trial + 1) + " of " + trials.length, 50, 20);
 
@@ -189,11 +211,20 @@ function draw() {
     drawInputArea();
 
     // Draw the virtual cursor
-    let x = map(mouseX, inputArea.x, inputArea.x + inputArea.w, 0, width);
-    let y = map(mouseY, inputArea.y, inputArea.y + inputArea.h, 0, height);
+    let virtual_coords = getVirtualCoordinates();
+    let snap = snapCursor(virtual_coords);
+
+    if (virtual_coords == null) {
+      return;
+    }
 
     fill(color(255, 255, 255));
-    circle(x, y, 0.5 * PPCM);
+    if (active_features.snapping) {
+      line(virtual_coords.x, virtual_coords.y, snap.x, snap.y);
+      circle(snap.x, snap.y, 0.5 * PPCM);
+    } else {
+      circle(virtual_coords.x, virtual_coords.y, 0.5 * PPCM);
+    }
   }
 }
 
@@ -257,7 +288,8 @@ function printAndSavePerformance() {
   for (let i = 0; i < fitts_IDs.length; i++) {
     let fid = fitts_IDs[i];
     if (fid === -1) fid = "MISSED";
-    else if (fid === -2) fid = "---"; // first trial
+    else if (fid === -2) fid = "---";
+    // first trial
     else fid = fid.toFixed(3);
     text(
       "Target " + (i + 1) + ": " + fid,
@@ -296,7 +328,7 @@ function printAndSavePerformance() {
   }
 }
 
-function getVirtualCoordinates(target) {
+function getVirtualCoordinates() {
   if (insideInputArea(mouseX, mouseY)) {
     const virtual_x = map(
       mouseX,
@@ -317,8 +349,28 @@ function getVirtualCoordinates(target) {
   return null;
 }
 
+function getRealCoordinates(target) {
+  const real_x = map(
+    target.x,
+    0,
+    width,
+    inputArea.x,
+    inputArea.x + inputArea.w
+  );
+  const real_y = map(
+    target.y,
+    0,
+    height,
+    inputArea.y,
+    inputArea.y + inputArea.h
+  );
+  return createVector(real_x, real_y);
+}
+
 function isTargeting(target) {
-  const virtual_coords = getVirtualCoordinates(target);
+  const virtual_coords = active_features.snapping
+    ? snapCursor(getVirtualCoordinates())
+    : getVirtualCoordinates();
   return (
     virtual_coords !== null &&
     dist(target.x, target.y, virtual_coords.x, virtual_coords.y) < target.w / 2
@@ -336,7 +388,7 @@ function mousePressed() {
   if (draw_targets) {
     // Get the location and size of the target the user should be trying to select
     const target = getTargetBounds(trials[current_trial]);
-    const virtual_coords = getVirtualCoordinates(target);
+    const virtual_coords = getVirtualCoordinates();
     if (virtual_coords) {
       // Check to see if the virtual cursor is inside the target bounds,
       // increasing either the 'hits' or 'misses' counters
@@ -506,11 +558,72 @@ function windowResized() {
 
 // Responsible for drawing the input area
 function drawInputArea() {
-  fill(color(0, 0, 0));
-  stroke(color(220, 220, 220));
-  strokeWeight(2);
+  if (active_features.snapping) {
+    for (let i = 0; i <= 18; i++) {
+      trial = i;
 
-  rect(inputArea.x, inputArea.y, inputArea.w, inputArea.h);
+      // Hack to avoid covering colored stroke
+      if (i == 18) {
+        trial = trials[current_trial];
+      }
+
+      strokeWeight(
+        active_features.border_on_hover && isTargeting(getTargetBounds(trial))
+          ? 4
+          : 2
+      );
+      stroke(color(220, 220, 220));
+      if (trials[current_trial] === trial) {
+        stroke(
+          active_features.current_target_border
+            ? color(255, 255, 0)
+            : color(220, 220, 220)
+        );
+        fill(
+          trials[current_trial + 1] === trial
+            ? color(0, 0, 255)
+            : color(255, 0, 0)
+        );
+      } else if (trials[current_trial + 1] === trial) {
+        fill(
+          active_features.next_target_dim_color
+            ? color(220, 220, 220)
+            : color(255, 255, 255)
+        );
+      } else {
+        fill(color(0, 0, 0));
+      }
+
+      const target = getRealCoordinates(getTargetBounds(trial));
+
+      const up = getRealCoordinates(getTargetBounds(trial - 3)).y;
+      const down = getRealCoordinates(getTargetBounds(trial + 3)).y;
+      const left = getRealCoordinates(getTargetBounds(trial - 1)).x;
+      const right = getRealCoordinates(getTargetBounds(trial + 1)).x;
+
+      let topLeft = createVector((target.x + left) / 2, (target.y + up) / 2);
+      let bottomRight = createVector(
+        (target.x + right) / 2,
+        (target.y + down) / 2
+      );
+
+      if (trial % 3 == 0) topLeft.x = inputArea.x;
+      if (trial % 3 == 2) bottomRight.x = inputArea.x + inputArea.w;
+      if (Math.floor(trial / 3) == 0) topLeft.y = inputArea.y;
+      if (Math.floor(trial / 3) == 5) bottomRight.y = inputArea.y + inputArea.h;
+      rect(
+        topLeft.x,
+        topLeft.y,
+        bottomRight.x - topLeft.x,
+        bottomRight.y - topLeft.y
+      );
+    }
+  } else {
+    fill(color(0, 0, 0));
+    stroke(color(220, 220, 220));
+    strokeWeight(2);
+    rect(inputArea.x, inputArea.y, inputArea.w, inputArea.h);
+  }
 }
 
 // Responsible for drawing the tutorial area
@@ -526,25 +639,37 @@ function drawTutorialArea() {
   circle(inputArea.x + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
   fill(color(255, 255, 255));
   noStroke();
-  text('CURRENT', inputArea.x, titleHeight);
-  
+  text("CURRENT", inputArea.x, titleHeight);
+
   fill(color(255, 255, 255));
   noStroke();
-  circle(inputArea.x + inputArea.w / 4 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
-  text('NEXT', inputArea.x + inputArea.w / 4, titleHeight);
-  
+  circle(
+    inputArea.x + inputArea.w / 4 + TARGET_SIZE * 0.5,
+    targetHeight,
+    TARGET_SIZE * 0.75
+  );
+  text("NEXT", inputArea.x + inputArea.w / 4, titleHeight);
+
   fill(color(0, 0, 255));
   stroke(color(255, 255, 255));
   strokeWeight(4);
-  circle(inputArea.x + inputArea.w / 2 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  circle(
+    inputArea.x + inputArea.w / 2 + TARGET_SIZE * 0.5,
+    targetHeight,
+    TARGET_SIZE * 0.75
+  );
   fill(color(255, 255, 255));
   noStroke();
-  text('TWICE!', inputArea.x + inputArea.w / 2, titleHeight);
+  text("TWICE!", inputArea.x + inputArea.w / 2, titleHeight);
 
   fill(color(145, 145, 145));
   noStroke();
-  circle(inputArea.x + 3 * inputArea.w / 4 + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
+  circle(
+    inputArea.x + (3 * inputArea.w) / 4 + TARGET_SIZE * 0.5,
+    targetHeight,
+    TARGET_SIZE * 0.75
+  );
   fill(color(255, 255, 255));
   noStroke();
-  text('IRRELEVANT', inputArea.x + 3 * inputArea.w / 4, titleHeight);
+  text("IRRELEVANT", inputArea.x + (3 * inputArea.w) / 4, titleHeight);
 }
