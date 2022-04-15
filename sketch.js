@@ -46,6 +46,7 @@ const active_features = {
   snapping: 0.85,
   tutorial_screen: 0.75,
   time_bar: 0.7,
+  alt_repetition_indicator: 0.75,
 };
 
 // Navigation line lerping
@@ -473,40 +474,54 @@ function mousePressed() {
   }
 }
 
-// Draw target on-screen
-function drawTarget(i) {
-  // Get the location and size for target (i)
-  let target = getTargetBounds(i);
+// Sets stroke, strokeWeight and fill
+// set stroke and fill for irrelevant targets before calling, will persist
+function setTargetDrawProperties(trial, target) {
+  strokeWeight(active_features.border_on_hover && isTargeting(target) ? 4 : 2);
 
-  stroke(color(220, 220, 220));
-  strokeWeight(2);
-
-  // Check whether this target is the target the user should be trying to select, otherwise red
-  if (trials[current_trial] === i) {
-    // If the next particle is the same as the current, make it blue
-    fill(trials[current_trial + 1] === i ? color(0, 0, 255) : color(255, 0, 0));
-    stroke(
-      active_features.current_target_border
-        ? color(255, 255, 0)
-        : color(220, 220, 220)
-    );
-    // Remember you are allowed to access targets (i-1) and (i+1)
-    // if this is the target the user should be trying to select
-  } else if (trials[current_trial + 1] === i) {
+  // Check whether this target is the target the user should be trying to select
+  if (trials[current_trial] === trial) {
+    if (active_features.alt_repetition_indicator) {
+      fill(color(255, 0, 0));
+      stroke(
+        trials[current_trial + 1] === trial
+          ? color(0, 255, 255) // cyan
+          : active_features.current_target_border
+          ? color(255, 255, 0) // yellow
+          : color(220, 220, 220) // grey
+      );
+    } else {
+      // If the next trial is the same as the current, make it blue
+      fill(
+        trials[current_trial + 1] === trial
+          ? color(0, 0, 255)
+          : color(255, 0, 0)
+      );
+      stroke(
+        active_features.current_target_border
+          ? color(255, 255, 0)
+          : color(220, 220, 220)
+      );
+    }
+  } else if (trials[current_trial + 1] === trial) {
     fill(
       active_features.next_target_dim_color
         ? color(220, 220, 220)
         : color(255, 255, 255)
     );
   } else {
-    fill(color(145, 145, 145));
-    // noStroke(); // probably won't work
-    strokeWeight(0);
+    // use already set values
   }
+}
 
-  if (active_features.border_on_hover && isTargeting(target)) {
-    strokeWeight(4);
-  }
+// Draw target on-screen
+function drawTarget(i) {
+  // Get the location and size for target (i)
+  const target = getTargetBounds(i);
+
+  stroke(color(0, 0, 0));
+  fill(color(145, 145, 145));
+  setTargetDrawProperties(i, target);
 
   // Draws the target
   circle(target.x, target.y, target.w);
@@ -589,34 +604,13 @@ function drawInputArea() {
         trial = trials[current_trial];
       }
 
-      strokeWeight(
-        active_features.border_on_hover && isTargeting(getTargetBounds(trial))
-          ? 4
-          : 2
-      );
-      stroke(color(220, 220, 220));
-      if (trials[current_trial] === trial) {
-        stroke(
-          active_features.current_target_border
-            ? color(255, 255, 0)
-            : color(220, 220, 220)
-        );
-        fill(
-          trials[current_trial + 1] === trial
-            ? color(0, 0, 255)
-            : color(255, 0, 0)
-        );
-      } else if (trials[current_trial + 1] === trial) {
-        fill(
-          active_features.next_target_dim_color
-            ? color(220, 220, 220)
-            : color(255, 255, 255)
-        );
-      } else {
-        fill(color(0, 0, 0));
-      }
+      const bounds = getTargetBounds(trial);
 
-      const target = getRealCoordinates(getTargetBounds(trial));
+      stroke(color(220, 220, 220));
+      fill(color(0, 0, 0));
+      setTargetDrawProperties(trial, bounds);
+
+      const target = getRealCoordinates(bounds);
 
       const up = getRealCoordinates(getTargetBounds(trial - 3)).y;
       const down = getRealCoordinates(getTargetBounds(trial + 3)).y;
@@ -657,6 +651,8 @@ function drawTutorialArea() {
   fill(color(255, 0, 0));
   if (active_features.current_target_border) {
     stroke(color(255, 255, 0));
+  } else {
+    noStroke();
   }
   circle(inputArea.x + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
   fill(color(255, 255, 255));
@@ -672,8 +668,13 @@ function drawTutorialArea() {
   );
   text("NEXT", inputArea.x + inputArea.w / 4, titleHeight);
 
-  fill(color(0, 0, 255));
-  stroke(color(255, 255, 255));
+  if (active_features.alt_repetition_indicator) {
+    fill(color(255, 0, 0));
+    stroke(color(0, 255, 255));
+  } else {
+    fill(color(0, 0, 255));
+    stroke(color(255, 255, 255));
+  }
   strokeWeight(4);
   circle(
     inputArea.x + inputArea.w / 2 + TARGET_SIZE * 0.5,
