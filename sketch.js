@@ -17,6 +17,7 @@ let continue_button;
 let inputArea = { x: 0, y: 0, h: 0, w: 0 }; // Position and size of the user input area
 
 // Metrics
+let trialStartTime; // time in milliseconds
 let testStartTime, testEndTime; // time between the start and end of one attempt (54 trials)
 let hits = 0; // number of successful selections
 let misses = 0; // number of missed selections (used to calculate accuracy)
@@ -29,6 +30,7 @@ let current_trial = 0; // the current trial number (indexes into trials array ab
 let attempt = 0; // users complete each test twice to account for practice (attemps 0 and 1)
 let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there is a miss, -2 for first trial)
 let last_click_virtual_coords; // used to calculate Fitts ID
+let optimal_selection_time; // ms
 
 // Features (initial value = probability of being active)
 // If forceAllFeatures is on, features with >= 0.5 probability will be enabled (and any others will be disabled)
@@ -43,6 +45,7 @@ const active_features = {
   sound_feedback: 0.7,
   snapping: 0.85,
   tutorial_screen: 0.75,
+  time_bar: 0.7,
 };
 
 // Navigation line lerping
@@ -128,6 +131,11 @@ function setup() {
 
   particle_system = new ParticleSystem(active_features.particles);
   randomizeTrials(); // randomize the trial order at the start of execution
+  optimal_selection_time = 30e3 / (trials.length - 1); // max 30 seconds for all trials (first one doesn't count)
+  optimal_selection_time *= 0.9; // 10% buffer
+  console.log(
+    "Optimal selection time (per target): " + optimal_selection_time + "ms"
+  );
 
   textFont("Arial", 18); // font size for the majority of the text
   drawUserIDScreen(); // draws the user start-up screen (student ID and display size)
@@ -174,7 +182,7 @@ function draw() {
     particle_system.run();
 
     // Draw all 18 targets
-    for (var i = 0; i < 18; i++) drawTarget(i);
+    for (let i = 0; i < 18; i++) drawTarget(i);
 
     // Draw arrow connecting to next target
     if (active_features.navigation_lines) {
@@ -210,6 +218,11 @@ function draw() {
 
     // Draw the user input area
     drawInputArea();
+
+    // Draw the time bar pressuring user to click before it runs out
+    if (active_features.time_bar) {
+      drawTimeBar();
+    }
 
     // Draw the virtual cursor
     let virtual_coords = getVirtualCoordinates();
@@ -432,6 +445,7 @@ function mousePressed() {
       last_click_virtual_coords = virtual_coords;
       current_trial++; // Move on to the next trial/target
       line_lerp = 0;
+      trialStartTime = millis();
 
       // Check if the user has completed all 54 trials
       if (current_trial === trials.length) {
@@ -453,6 +467,7 @@ function mousePressed() {
       // Check if this was the first selection in an attempt
       else if (current_trial === 1) {
         testStartTime = millis();
+        trialStartTime = testStartTime;
       }
     }
   }
@@ -499,10 +514,10 @@ function drawTarget(i) {
 
 // Returns the location and size of a given target
 function getTargetBounds(i) {
-  var x =
+  const x =
     parseInt(LEFT_PADDING) +
     parseInt((i % 3) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
-  var y =
+  const y =
     parseInt(TOP_PADDING) +
     parseInt(Math.floor(i / 3) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
 
@@ -529,6 +544,7 @@ function continueTest() {
   line_lerp = 0;
   draw_targets = true;
   testStartTime = millis();
+  trialStartTime = testStartTime;
 }
 
 // Is invoked when the canvas is resized (e.g., when we go fullscreen)
@@ -678,4 +694,18 @@ function drawTutorialArea() {
   fill(color(255, 255, 255));
   noStroke();
   text("IRRELEVANT", inputArea.x + (3 * inputArea.w) / 4, titleHeight);
+}
+
+function drawTimeBar() {
+  // Draw bar, with outline, below input area
+  const outlineY = inputArea.y + inputArea.h + TARGET_SIZE * 0.5;
+  stroke(color(255, 255, 255));
+  strokeWeight(2);
+  noFill();
+  rect(inputArea.x, outlineY, inputArea.w, TARGET_SIZE * 0.5);
+
+  const ellapsed = current_trial > 0 ? millis() - trialStartTime : 0;
+  const factor = max(0, 1 - ellapsed / optimal_selection_time);
+  fill(lerpColor(color(255, 0, 0), color(0, 255, 0), factor));
+  rect(inputArea.x, outlineY, inputArea.w * factor, TARGET_SIZE * 0.5);
 }
