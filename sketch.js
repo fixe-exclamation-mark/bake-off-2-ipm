@@ -31,13 +31,14 @@ let fitts_IDs = []; // add the Fitts ID for each selection here (-1 when there i
 let last_click_virtual_coords; // used to calculate Fitts ID
 
 // Features (initial value = probability of being active)
+// If forceAllFeatures is on, features with >= 0.5 probability will be enabled (and any others will be disabled)
 const active_features = {
   particles: 0.7,
   current_target_border: 0.7,
   border_on_hover: 0.7,
   navigation_lines: 0.7,
   animate_navigation_line: 0.7,
-  next_target_dim_color: 0.5,
+  next_target_dim_color: 0.4,
   background_color_feedback: 0.7,
   sound_feedback: 0.7,
   snapping: 0.85,
@@ -230,8 +231,13 @@ function draw() {
 
 function randomizeFeatures() {
   // Randomize the active features
+  const force_all =
+    new URLSearchParams(window.location.search).get("forceAllFeatures") !==
+    null;
   for (const feat of Object.keys(active_features)) {
-    active_features[feat] = random() < active_features[feat];
+    active_features[feat] = force_all
+      ? active_features[feat] >= 0.5
+      : random() < active_features[feat];
   }
   console.log("Features:", active_features);
 }
