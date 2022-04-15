@@ -174,7 +174,7 @@ function draw() {
     particle_system.run();
 
     // Draw all 18 targets
-    for (var i = 0; i < 18; i++) drawTarget(i);
+    for (let i = 0; i < 18; i++) drawTarget(i);
 
     // Draw arrow connecting to next target
     if (active_features.navigation_lines) {
@@ -499,10 +499,10 @@ function drawTarget(i) {
 
 // Returns the location and size of a given target
 function getTargetBounds(i) {
-  var x =
+  const x =
     parseInt(LEFT_PADDING) +
     parseInt((i % 3) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
-  var y =
+  const y =
     parseInt(TOP_PADDING) +
     parseInt(Math.floor(i / 3) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
 
