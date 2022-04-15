@@ -20,7 +20,9 @@ Posteriormente, fomos experimentado mais _features_:
 
 - Na mesma lógica de pistas dadas ao utilizador de que acertou no último alvo, tentámos mudar o ecrã entre verde e vermelho, consoante acertasse ou não no alvo, bem como _pistas auditivas_. Ambas aparentaram ter efeitos positivos, pelo que as mantivemos até ao fim.
 
-<!-- TODO: snapping (luís) -->
+- Uma das alterações mais significativas foi a adição de _target snapping_, o utilizador continua a ter controlo total do cursor, no entanto, um segundo cursor virtual é colocado no topo do alvo mais próximo, selecionando-o.
+
+- Para facilitar a compreensão da _feature_ anterior, alterámos visualmente a área de input, revelando as regiões que levarão à seleção de cada alvo.
 
 - Por fim, procurámos adicionar uma área de "instruções" para o utilizador no ecrã - não pareceu surtir grandes efeitos, por isso removê-mo-la.
 
