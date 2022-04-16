@@ -18,7 +18,7 @@ Posteriormente, fomos experimentado mais _features_:
 
 - Experimentámos um leque de pistas para o utilizador: mini-explosões de partículas, mudança da cor de fundo entre verde e vermelho, alteração da cor e rebordo do alvo caso vá ter de ser clicado duas vezes e feedback auditivo. Destas tentativas, a que pareceu surtir um menor _boost_ na prática foi a utilização de partículas, pelo que acabámos por removê-las. O feedback auditivo e a mudança da cor de fundo foram dos que mais se fizeram sentir.
 
-- Procurámos adicionar linhas auxiliares para o utilizador saber para onde tem de mover o cursor - a _feature_ foi bem recebida, pelo que mantivemo-la.
+- Procurámos adicionar linhas auxiliares para o utilizador saber para onde tem de mover o cursor - a _feature_ foi bem recebida, pelo que acabámos por mantê-la.
 
 - Já perto do fim, implementámos _target snapping_, que teve o maior impacto de todos no desempenho dos utilizadoes. Aqui, o utilizador continua a ter controlo total do cursor, no entanto, um segundo cursor virtual é colocado no topo do alvo mais próximo, selecionando-o. Para facilitar a compreensão da _feature_ anterior, alterámos visualmente a área de input, revelando as regiões que levarão à seleção de cada alvo.
 
