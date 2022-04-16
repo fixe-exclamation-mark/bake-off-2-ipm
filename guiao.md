@@ -16,15 +16,13 @@ Pudemos logo observar pontos claros onde alterações surtiriam efeitos muito po
 
 Posteriormente, fomos experimentado mais _features_:
 
-- Experimentámos mini explosões de _partículas_ como pista visual para o utilizador saber que tinha acertado no alvo. Não surtiu grandes efeitos, pelo que acabou por ser removida. <!-- FIXME: vai ser removida?-->
+- Experimentámos um leque de pistas para o utilizador: mini-explosões de partículas, mudança da cor de fundo entre verde e vermelho, alteração da cor e rebordo do alvo caso vá ter de ser clicado duas vezes e feedback auditivo. Destas tentativas, a que pareceu surtir um menor _boost_ na prática foi a utilização de partículas, pelo que acabámos por removê-las. O feedback auditivo e a mudança da cor de fundo foram dos que mais se fizeram sentir.
 
-- Na mesma lógica de pistas dadas ao utilizador de que acertou no último alvo, tentámos mudar o ecrã entre verde e vermelho, consoante acertasse ou não no alvo, bem como _pistas auditivas_. Ambas aparentaram ter efeitos positivos, pelo que as mantivemos até ao fim.
+- Procurámos adicionar linhas auxiliares para o utilizador saber para onde tem de mover o cursor - a _feature_ foi bem recebida, pelo que mantivemo-la.
 
-- Uma das alterações mais significativas foi a adição de _target snapping_. O utilizador continua a ter controlo total do cursor, no entanto, um segundo cursor virtual é colocado no topo do alvo mais próximo, selecionando-o.
+- Já perto do fim, implementámos _target snapping_, que teve o maior impacto de todos no desempenho dos utilizadoes. Aqui, o utilizador continua a ter controlo total do cursor, no entanto, um segundo cursor virtual é colocado no topo do alvo mais próximo, selecionando-o. Para facilitar a compreensão da _feature_ anterior, alterámos visualmente a área de input, revelando as regiões que levarão à seleção de cada alvo.
 
-- Para facilitar a compreensão da _feature_ anterior, alterámos visualmente a área de input, revelando as regiões que levarão à seleção de cada alvo.
-
-- Por fim, procurámos adicionar uma área de "instruções" para o utilizador no ecrã - não pareceu surtir grandes efeitos, por isso removê-mo-la.
+- Adicionámos ainda um ecrã de "instruções" para ajudar o utilizador a saber onde clicar antes de começar. Acabou por não fazer grande diferença no resultado final.
 
 No fim, o resultado final foi o seguinte:
 
