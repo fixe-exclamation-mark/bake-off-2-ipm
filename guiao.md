@@ -12,7 +12,7 @@ Pudemos logo observar pontos claros onde alterações surtiriam efeitos muito po
 
 - O alvo **a selecionar** praticamente não se distinguia dos restantes. Assim sendo, optámos por adicionar uma cor que criasse contraste, vermelho, a par de um rebordo que chamasse a atenção (amarelo).
 
-- O alvo **seguinte** devia também contrastar com os demais alvos, por forma a dar ao utilizador uma pista de onde ir a seguir. Acabámos por optar por alvos completamente brancos, para além de ter linhas auxiliares que o utilizador podia seguir para encontrar o alvo seguinte.
+- O alvo **seguinte** devia também contrastar com os demais alvos, por forma a dar ao utilizador uma pista de onde ir a seguir. Acabámos por optar por alvos auxiliares completamente brancos, que aparentaram distinguir-se bem dos restantes.
 
 Posteriormente, fomos experimentado mais _features_:
 
