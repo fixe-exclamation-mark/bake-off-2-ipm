@@ -49,6 +49,7 @@ const active_features = {
 };
 // If enabled, features with >= 0.5 probability will be enabled (and any others will be disabled)
 const force_all_features =
+  BAKE_OFF_DAY ||
   new URLSearchParams(window.location.search).get("forceAllFeatures") !== null;
 
 // Navigation line lerping
