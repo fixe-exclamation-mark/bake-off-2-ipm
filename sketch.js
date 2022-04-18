@@ -647,6 +647,7 @@ function drawTutorialArea() {
   // Draw instructions above input area
   const targetHeight = inputArea.y - TARGET_SIZE * 1.5;
   const titleHeight = inputArea.y - TARGET_SIZE * 2.25;
+  textAlign(CENTER);
 
   fill(color(255, 0, 0));
   if (active_features.current_target_border) {
@@ -657,7 +658,7 @@ function drawTutorialArea() {
   circle(inputArea.x + TARGET_SIZE * 0.5, targetHeight, TARGET_SIZE * 0.75);
   fill(color(255, 255, 255));
   noStroke();
-  text("CURRENT", inputArea.x, titleHeight);
+  text("CURRENT", inputArea.x + TARGET_SIZE * 0.5, titleHeight);
 
   fill(color(255, 255, 255));
   noStroke();
@@ -666,7 +667,7 @@ function drawTutorialArea() {
     targetHeight,
     TARGET_SIZE * 0.75
   );
-  text("NEXT", inputArea.x + inputArea.w / 4, titleHeight);
+  text("NEXT", inputArea.x + inputArea.w / 4 + TARGET_SIZE * 0.5, titleHeight);
 
   if (active_features.alt_repetition_indicator) {
     fill(color(255, 0, 0));
@@ -683,7 +684,11 @@ function drawTutorialArea() {
   );
   fill(color(255, 255, 255));
   noStroke();
-  text("TWICE!", inputArea.x + inputArea.w / 2, titleHeight);
+  text(
+    "TWICE!",
+    inputArea.x + inputArea.w / 2 + TARGET_SIZE * 0.5,
+    titleHeight
+  );
 
   fill(color(145, 145, 145));
   noStroke();
@@ -694,7 +699,11 @@ function drawTutorialArea() {
   );
   fill(color(255, 255, 255));
   noStroke();
-  text("IRRELEVANT", inputArea.x + (3 * inputArea.w) / 4, titleHeight);
+  text(
+    "IRRELEVANT",
+    inputArea.x + (3 * inputArea.w) / 4 + TARGET_SIZE * 0.5,
+    titleHeight
+  );
 }
 
 function drawTimeBar() {
