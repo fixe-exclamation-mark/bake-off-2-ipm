@@ -44,8 +44,8 @@ const active_features = {
   sound_feedback: 0.7,
   snapping: 0.85,
   tutorial_screen: 0.75,
-  time_bar: 0.7,
-  alt_repetition_indicator: 0.75,
+  time_bar: 0.4,
+  alt_repetition_indicator: 0.3,
 };
 // If enabled, features with >= 0.5 probability will be enabled (and any others will be disabled)
 const force_all_features =
