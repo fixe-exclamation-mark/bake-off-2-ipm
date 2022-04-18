@@ -331,7 +331,6 @@ function printAndSavePerformance() {
     time_per_target: time_per_target,
     target_w_penalty: target_w_penalty,
     fitts_IDs: fitts_IDs,
-    active_features, // FIXME: remove this
   };
 
   // Send data to DB (DO NOT CHANGE!)
