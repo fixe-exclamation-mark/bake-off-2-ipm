@@ -7,7 +7,7 @@
 
 // Database (CHANGE THESE!)
 const GROUP_NUMBER = "3-AL"; // Add your group number here as an integer (e.g., 2, 3)
-const BAKE_OFF_DAY = true; // Set to 'true' before sharing during the bake-off day
+const BAKE_OFF_DAY = false; // Set to 'true' before sharing during the bake-off day
 
 // Target and grid properties (DO NOT CHANGE!)
 let PPI, PPCM;
