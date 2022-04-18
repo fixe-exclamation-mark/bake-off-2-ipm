@@ -398,12 +398,12 @@ function isTargeting(target) {
 
 // Mouse button was pressed - lets test to see if hit was in the correct target
 function mousePressed() {
-  // Only look for mouse releases during the actual test
-  // (i.e., during target selections)
-
-  // as the first thing, stop any sound currently playing (so there aren't any overlapping sounds)
+  // first, stop any sound currently playing (so there aren't any overlapping sounds)
   hit_sound.stop();
   miss_sound.stop();
+
+  // Only look for mouse releases during the actual test
+  // (i.e., during target selections)
   if (draw_targets) {
     // Get the location and size of the target the user should be trying to select
     const target = getTargetBounds(trials[current_trial]);
@@ -414,7 +414,7 @@ function mousePressed() {
       if (isTargeting(target)) {
         for (let i = 0; i < 32; i++)
           particle_system.addParticle(virtual_coords);
-        // load hit sound (but first, stop any previous sound playing)
+        // load hit sound
         if (active_features.sound_feedback) {
           hit_sound.play();
         }
@@ -445,7 +445,6 @@ function mousePressed() {
       last_click_virtual_coords = virtual_coords;
       current_trial++; // Move on to the next trial/target
       line_lerp = 0;
-      trialStartTime = millis();
 
       // Check if the user has completed all 54 trials
       if (current_trial === trials.length) {
@@ -468,6 +467,8 @@ function mousePressed() {
       else if (current_trial === 1) {
         testStartTime = millis();
         trialStartTime = testStartTime;
+      } else {
+        trialStartTime = millis();
       }
     }
   }
