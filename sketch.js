@@ -33,7 +33,6 @@ let last_click_virtual_coords; // used to calculate Fitts ID
 let optimal_selection_time; // ms
 
 // Features (initial value = probability of being active)
-// If forceAllFeatures is on, features with >= 0.5 probability will be enabled (and any others will be disabled)
 const active_features = {
   particles: 0.7,
   current_target_border: 0.7,
@@ -48,6 +47,9 @@ const active_features = {
   time_bar: 0.7,
   alt_repetition_indicator: 0.75,
 };
+// If enabled, features with >= 0.5 probability will be enabled (and any others will be disabled)
+const force_all_features =
+  new URLSearchParams(window.location.search).get("forceAllFeatures") !== null;
 
 // Navigation line lerping
 let line_lerp = 0;
@@ -245,11 +247,8 @@ function draw() {
 
 function randomizeFeatures() {
   // Randomize the active features
-  const force_all =
-    new URLSearchParams(window.location.search).get("forceAllFeatures") !==
-    null;
   for (const feat of Object.keys(active_features)) {
-    active_features[feat] = force_all
+    active_features[feat] = force_all_features
       ? active_features[feat] >= 0.5
       : random() < active_features[feat];
   }
